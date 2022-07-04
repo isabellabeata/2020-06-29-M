@@ -1,5 +1,75 @@
 package it.polito.tdp.imdb.model;
 
-public class Model {
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+import org.jgrapht.Graph;
+import org.jgrapht.Graphs;
+import org.jgrapht.graph.DefaultWeightedEdge;
+import org.jgrapht.graph.SimpleWeightedGraph;
+
+import it.polito.tdp.imdb.db.ImdbDAO;
+
+public class Model {
+	
+	private ImdbDAO dao;
+	private Graph <Director, DefaultWeightedEdge> grafo;
+	private Map<Integer, Director> idMap;
+	private List<Director> vertici;
+	
+	public Model() {
+		dao= new ImdbDAO();
+		this.idMap= new HashMap<Integer, Director>();
+	}
+	
+	public List<Director> popolacmb() {
+		
+		return this.vertici;
+		
+	}
+	
+	public void creaGrafo(Integer anno) {
+		
+		this.grafo=new SimpleWeightedGraph<Director, DefaultWeightedEdge> (DefaultWeightedEdge.class);
+		this.vertici=new ArrayList<Director> (dao.getAllVertici(anno, idMap));
+		Graphs.addAllVertices(this.grafo, this.vertici);
+		
+		List<Arco> archi= new ArrayList<Arco>(this.dao.getAdiacenze(idMap, anno));
+		for(Arco a: archi) {
+			Graphs.addEdgeWithVertices(this.grafo, a.getD1(), a.getD2(), a.getPeso());
+		}
+				
+	}
+	
+	public String nVertici() {
+		return "Grafo creato!"+"\n"+"#verici: "+ this.grafo.vertexSet().size()+"\n";
+	}
+	
+	public String nArchi() {
+		return "#archi: "+ this.grafo.edgeSet().size()+"\n";
+	}
+	
+	public List<DirectPeso> getAdiacenze (Director d){
+		List<DirectPeso> adiacenze= new ArrayList<DirectPeso>();
+		Director d1=null;
+		
+		for(DefaultWeightedEdge e: this.grafo.outgoingEdgesOf(d)) {
+			d1=Graphs.getOppositeVertex(this.grafo, e, d);
+			
+			DefaultWeightedEdge ee= this.grafo.getEdge(d, d1);
+			
+			double peso= this.grafo.getEdgeWeight(ee);
+			
+			DirectPeso dp= new DirectPeso(d1, peso);
+			adiacenze.add(dp);
+			
+		}
+		
+		Collections.sort(adiacenze, new ComparatoreDiAdiacenze());
+		
+		return adiacenze;
+	}
 }
