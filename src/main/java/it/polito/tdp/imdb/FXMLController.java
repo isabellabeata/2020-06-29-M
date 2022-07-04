@@ -51,6 +51,7 @@ public class FXMLController {
     void doCreaGrafo(ActionEvent event) {
     	this.txtResult.clear();
     	this.boxRegista.getItems().clear();
+    	this.txtAttoriCondivisi.clear();
     	if(this.boxAnno.getValue()!=null) {
     		this.model.creaGrafo(this.boxAnno.getValue());
     		this.txtResult.setText(this.model.nVertici());
@@ -78,6 +79,16 @@ public class FXMLController {
 
     @FXML
     void doRicorsione(ActionEvent event) {
+    	this.txtResult.clear();
+    	try {
+    	Double c=Double.parseDouble(this.txtAttoriCondivisi.getText());
+    	Director d= this.boxRegista.getValue();
+    	
+    	this.txtResult.appendText(this.model.registriAffini(d, c));
+    		
+    	}catch(Exception e) {
+    		this.txtResult.setText("Inserire un valore numerico valido come attori condivisi");
+    	}
 
     }
 

@@ -19,6 +19,8 @@ public class Model {
 	private Graph <Director, DefaultWeightedEdge> grafo;
 	private Map<Integer, Director> idMap;
 	private List<Director> vertici;
+	private List<Director> best;
+	private double bestPeso;
 	
 	public Model() {
 		dao= new ImdbDAO();
@@ -71,5 +73,47 @@ public class Model {
 		Collections.sort(adiacenze, new ComparatoreDiAdiacenze());
 		
 		return adiacenze;
+	}
+	
+	public String registriAffini(Director dir, double c) {
+		String s="";
+		
+		this.best= new ArrayList<Director>();
+		List<Director> parziale= new ArrayList<Director>();
+
+		for(DirectPeso d: this.getAdiacenze(dir)) {
+			parziale.add(d.getD());
+			this.bestPeso+= d.getPeso();
+		}
+		double peso=bestPeso;
+		cerca(c,parziale, peso);
+		
+		for(Director di: best) {
+			s+=di+"\n";
+		}
+		
+		return s+"Il peso massimo è: "+ this.bestPeso;
+	}
+
+	private void cerca(double c, List<Director> parziale, double peso) {
+		
+		if(parziale.size()>best.size()) {
+			this.best= new ArrayList<Director>(parziale);
+			this.bestPeso=peso;
+		}
+		
+		for(Director di: Graphs.neighborListOf(this.grafo, parziale.get(parziale.size()-1))) {
+			
+			DefaultWeightedEdge ee= this.grafo.getEdge(parziale.get(parziale.size()-1), di);
+			peso+= this.grafo.getEdgeWeight(ee);
+			if(peso<=c && !(parziale.contains(di))) {
+				parziale.add(di);
+			
+				parziale.remove(parziale.size()-1);
+				peso-=this.grafo.getEdgeWeight(ee);
+			}
+			else return;
+			
+		}
 	}
 }
